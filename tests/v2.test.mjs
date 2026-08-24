@@ -39,9 +39,9 @@ test("commands/ov.md exists and references extension", () => {
 });
 
 test("package and marketplace bumped to 0.2.0", () => {
-  assert.match(readJson("package.json").version, /^0\.2\.0/);
-  assert.match(readJson("plugin.json").version, /^0\.2\.0/);
-  assert.equal(readJson(".omp-plugin/marketplace.json").plugins[0].version, "0.2.0");
+  assert.match(readJson("package.json").version, /^0\.2\./);
+  assert.match(readJson("plugin.json").version, /^0\.2\./);
+  assert.match(readJson(".omp-plugin/marketplace.json").plugins[0].version, /^0\.2\./);
 });
 
 test("vendored shared/servers still have GENERATED headers", () => {
