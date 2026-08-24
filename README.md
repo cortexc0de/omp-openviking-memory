@@ -24,7 +24,7 @@
 
 ## What it is
 
-Native port of [`examples/pi-coding-agent-extension`](https://github.com/volcengine/OpenViking/tree/main/examples/pi-coding-agent-extension) for **OMP** (`can1357/oh-my-pi`, fork of `pi`). Runs as an **OMP Extension** for lifecycle hooks and ships an **Agent Plugins 1.0** `mcp.json` (`servers/mcp-proxy.mjs`, stdio → streamable HTTP) as fallback — without the Extension there is no auto-recall/capture.
+Native port of [`pi-coding-agent-extension`](https://github.com/volcengine/OpenViking/tree/main/examples/pi-coding-agent-extension) for **OMP** · runs as Extension (hooks) and ships `mcp.json` (`servers/mcp-proxy.mjs`) as fallback — no auto-recall without Extension.
 
 > **Requires an OpenViking server** — local `http://127.0.0.1:1933` or remote. `curl http://127.0.0.1:1933/health` should return `ok`.
 
@@ -101,7 +101,7 @@ node scripts/setup.mjs   # wizard for ovcli.conf
 
 ## Tools (11) · Commands · Skill
 
-**Tools** — `viking_search`, `viking_read`, `viking_browse`, `viking_remember`, `viking_forget`, `viking_add_resource` (SSRF-guarded), `viking_archive_expand`, `viking_tree` (≥0.4.14), `viking_write`, `viking_edit`, `viking_health`. Optional `tree`/`write`/`edit` degrade gracefully on old servers.
+**Tools (11)** — `viking_search` · `read` · `browse` · `remember` · `forget` · `add_resource` (SSRF-guarded) · `archive_expand` · `tree` (≥0.4.14) · `write` · `edit` · `health` — optional degrade gracefully.
 
 **Guard** — `viking://` on `read`/`bash`/`glob`/`grep` → `viking_read`/`viking_search`.
 
