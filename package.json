@@ -8,17 +8,18 @@
     "node": ">=18"
   },
   "keywords": [
-    "openviking",
-    "memory",
-    "omp",
-    "pi",
+    "context-database",
     "mcp",
-    "context-database"
+    "memory",
+    "oh-my-pi",
+    "omp",
+    "openviking",
+    "pi"
   ],
-  "homepage": "https://github.com/volcengine/OpenViking",
+  "homepage": "https://github.com/cortexc0de/omp-openviking-memory#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/volcengine/OpenViking"
+    "url": "https://github.com/cortexc0de/omp-openviking-memory.git"
   },
   "author": {
     "name": "Volcano Engine",
@@ -42,9 +43,30 @@
     "sync": "node scripts/sync.mjs"
   },
   "devDependencies": {
-    "typescript": "^5.6.0"
+    "typescript": "^5.9.3",
+    "@sinclair/typebox": "^0.34.0"
   },
   "peerDependencies": {
     "@oh-my-pi/pi-coding-agent": ">=18.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/cortexc0de/omp-openviking-memory/issues"
+  },
+  "files": [
+    "extensions/",
+    "lib/",
+    "shared/",
+    "servers/",
+    "skills/",
+    "commands/",
+    "config.json",
+    "mcp.json",
+    "plugin.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

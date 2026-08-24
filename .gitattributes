@@ -1,0 +1,5 @@
+assets/*.png linguist-generated=false
+assets/*.png binary
+*.mjs linguist-generated=true
+lib/*.mjs linguist-generated=true
+servers/shared/*.mjs linguist-generated=true

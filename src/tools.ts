@@ -1,9 +1,23 @@
-import { Type } from "typebox";
-import { StringEnum } from "@oh-my-pi/pi-ai";
+import { Type } from "@sinclair/typebox";
+const StringEnum = <T extends readonly string[]>(values: T) => Type.Unsafe<T[number]>({ enum: values }) as any;
 import type { OVClient } from "./client.js";
 import type { SyncManager } from "./sync.js";
 
+function isAllowedHttpUrl(raw: string): { ok: true } | { ok: false; reason: string } {
+  let u: URL;
+  try { u = new URL(String(raw)); } catch { return { ok: false, reason: `Invalid URL: ${raw}` }; }
+  if (u.protocol !== "http:" && u.protocol !== "https:") return { ok: false, reason: `Only http/https allowed, got ${u.protocol}` };
+  const host = u.hostname.toLowerCase();
+  if (host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "0.0.0.0") return { ok: false, reason: `Refused private host: ${host}` };
+  if (host.startsWith("10.") || host.startsWith("192.168.")) return { ok: false, reason: `Refused private range: ${host}` };
+  if (host.startsWith("172.")) { const s=parseInt(host.split(".")[1]||"0",10); if(s>=16&&s<=31) return { ok:false, reason:`Refused private range: ${host}` }; }
+  if (host==="169.254.169.254"||host.startsWith("169.254.")) return { ok:false, reason:`Refused link-local/metadata host: ${host}` };
+  if (host.endsWith(".local")||host.endsWith(".internal")) return { ok:false, reason:`Refused internal TLD: ${host}` };
+  return { ok:true };
+}
+
 export function registerTools(pi: any, client: OVClient, sync?: SyncManager): void {
+
 
   // --- viking_search ---
   pi.registerTool({

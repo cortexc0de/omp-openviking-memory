@@ -108,7 +108,8 @@ export default async function (pi: ExtensionAPI) {
     await start(ctx);
   });
 
-  pi.on("before_agent_start", async (event: any, ctx: any) => {
+  // @ts-ignore OMP ExtensionAPI types lag behind pi — before_agent_start exists at runtime
+  (pi as any).on("before_agent_start", async (event: any, ctx: any) => {
     await start(ctx);
     if (!connected || bypassed) return;
     recall.queueSearch(event.prompt);

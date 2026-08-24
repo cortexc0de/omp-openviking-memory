@@ -1,7 +1,8 @@
 {
   "name": "omp-openviking-memory-marketplace",
   "owner": {
-    "name": "omp-openviking-memory"
+    "name": "omp-openviking-memory",
+    "email": "cortexc0de@users.noreply.github.com"
   },
   "plugins": [
     {
@@ -11,5 +12,9 @@
       "category": "productivity",
       "version": "0.2.0"
     }
-  ]
+  ],
+  "metadata": {
+    "description": "Single-plugin marketplace for omp-openviking-memory \u2014 install via `omp plugin marketplace add github:cortexc0de/omp-openviking-memory`",
+    "version": "0.2.0"
+  }
 }
