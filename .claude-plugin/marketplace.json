@@ -10,11 +10,11 @@
       "source": "./",
       "description": "Long-term semantic memory for Oh My Pi via OpenViking \u2014 auto-recall/capture, 11 tools, slash /ov",
       "category": "productivity",
-      "version": "0.2.0"
+      "version": "0.2.1"
     }
   ],
   "metadata": {
     "description": "Single-plugin marketplace for omp-openviking-memory \u2014 install via `omp plugin marketplace add github:cortexc0de/omp-openviking-memory`",
-    "version": "0.2.0"
+    "version": "0.2.1"
   }
 }

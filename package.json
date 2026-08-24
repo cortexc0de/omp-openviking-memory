@@ -1,6 +1,6 @@
 {
   "name": "omp-openviking-memory",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Long-term semantic memory for Oh My Pi via OpenViking \u2014 auto-recall/capture, 11 viking:// tools, tree/write/edit, slash commands.",
   "type": "module",
   "license": "AGPL-3.0",

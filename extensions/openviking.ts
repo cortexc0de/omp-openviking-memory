@@ -8,8 +8,8 @@
  *  - User-Agent omp/… and ledger dir omp-recall-ledger
  */
 
-import { appendFileSync, mkdirSync, chmodSync } from "node:fs";
-import { dirname } from "node:path";
+import { appendFileSync, mkdirSync, chmodSync, realpathSync } from "node:fs";
+import { dirname, resolve as resolvePath } from "node:path";
 import { loadConfigFromModuleUrl, type OVConfig } from "../src/config.js";
 import { OVClient } from "../src/client.js";
 import { RecallManager } from "../src/recall.js";
@@ -226,9 +226,12 @@ export default async function (pi: ExtensionAPI) {
 }
 
 function matchBypass(cwd: string, pattern: string): boolean {
-  if (pattern.startsWith("*")) return cwd.endsWith(pattern.slice(1));
-  if (pattern.endsWith("*")) return cwd.startsWith(pattern.slice(0, -1));
-  return cwd === pattern || cwd.startsWith(pattern + "/");
+  let nCwd = cwd;
+  try { nCwd = realpathSync(cwd); } catch {}
+  try { if (!pattern.startsWith("*") && !pattern.endsWith("*")) pattern = resolvePath(pattern); nCwd = resolvePath(nCwd); } catch {}
+  if (pattern.startsWith("*")) return nCwd.endsWith(pattern.slice(1));
+  if (pattern.endsWith("*")) return nCwd.startsWith(pattern.slice(0, -1));
+  return nCwd === pattern || nCwd.startsWith(pattern + "/");
 }
 
 async function buildSessionProfileBlock(client: OVClient, config: OVConfig): Promise<string> {

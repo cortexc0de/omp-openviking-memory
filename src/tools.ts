@@ -41,6 +41,7 @@ export function registerTools(pi: any, client: OVClient, sync?: SyncManager): vo
       if (!client.connected) {
         return { content: [{ type: "text", text: "OpenViking server is not reachable." }] };
       }
+      if (String(params.query ?? "").length > 8000) return { content: [{ type: "text", text: "Query too long (max 8000 chars)." }] };
       const results = await client.find(params.query, {
         targetUri: params.scope,
         topK: params.limit ?? 10,
