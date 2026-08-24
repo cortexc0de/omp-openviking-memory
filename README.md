@@ -1,42 +1,76 @@
-# omp-openviking-memory — топовый плагин памяти для Oh My Pi
+<p align="center">
+  <img src="assets/banner.png" alt="OpenViking × OMP — Persistent memory & context for OMP agents — viking:// — Knowledge · Memory · Context · Autonomy" width="100%" />
+</p>
 
-Long-term semantic memory для [Oh My Pi](https://omp.sh) через [OpenViking](https://github.com/volcengine/OpenViking) — авто-recall перед каждым промптом, capture после каждого хода, **11** `viking://` инструментов, slash-команды `/ov`/`/viking`, tree/write/edit.
+<p align="center">
+  <a href="https://github.com/cortexc0de/omp-openviking-memory"><img src="https://img.shields.io/badge/plugin-omp--openviking--memory-7c5cff?style=flat-square&labelColor=0f0f1a" alt="plugin" /></a>
+  <a href="https://github.com/volcengine/OpenViking"><img src="https://img.shields.io/badge/upstream-OpenViking-2a6bff?style=flat-square&labelColor=0f1420" alt="upstream OpenViking" /></a>
+  <a href="https://omp.sh"><img src="https://img.shields.io/badge/harness-Oh%20My%20Pi%20%28OMP%29-ff2e7a?style=flat-square&labelColor=1a0f1a" alt="OMP" /></a>
+  <img src="https://img.shields.io/badge/node-%3E%3D18-2ecc71?style=flat-square&labelColor=0f1a12" alt="node >=18" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-9a9aaa?style=flat-square&labelColor=0f0f1a" alt="license AGPL-3.0" /></a>
+</p>
 
-> Native-порт [`examples/pi-coding-agent-extension`](https://github.com/volcengine/OpenViking/tree/main/examples/pi-coding-agent-extension) для OMP (`can1357/oh-my-pi`, fork `pi`). Работает как OMP Extension **и** как Agent Plugins 1.0 package (MCP fallback — `mcp.json` → `servers/mcp-proxy.mjs`).
+<p align="center">
+  <strong>Top-tier memory plugin for <a href="https://omp.sh">Oh My Pi</a> via <a href="https://github.com/volcengine/OpenViking">OpenViking</a>.</strong><br/>
+  Auto-recall before every prompt · capture after every turn · <code>viking://</code> filesystem · 11 tools · slash <code>/ov</code>
+</p>
 
-## Установка
+<p align="center">
+  <code>omp plugin marketplace add github:cortexc0de/omp-openviking-memory && omp plugin install omp-openviking-memory</code>
+</p>
 
-### Рекомендуемый путь — marketplace plugin
+---
+
+## What it is
+
+Native port of [`examples/pi-coding-agent-extension`](https://github.com/volcengine/OpenViking/tree/main/examples/pi-coding-agent-extension) for **OMP** (`can1357/oh-my-pi`, fork of `pi`). Works as an **OMP Extension** and as an **Agent Plugins 1.0** package — `mcp.json` → `servers/mcp-proxy.mjs` (stdio → streamable HTTP) is there as fallback; without the Extension lifecycle there's no auto-recall/capture.
+
+> **Requires an OpenViking server** — local `http://127.0.0.1:1933` or remote. Quick check: `curl http://127.0.0.1:1933/health`.
+
+## Why this one
+
+- **Current-prompt recall, not stale prefetch.** `before_agent_start` queues the prompt, `context` awaits `fetchAssembledContext` with `mode="context"` (15s / 45s fused deadlines).
+- **Ledger-stabilized prompt cache.** `~/.openviking/omp-recall-ledger/` re-applies byte-identical recall blocks to historical turns (#4137).
+- **Full capture pipeline.** `syncBranch` after each turn → `pending-queue` replay on next session, `takeover` or plain `commit()` + rehydration.
+- **`viking://` uri-guard.** `read`/`bash`/`glob`/`grep` on `viking://` are redirected to `viking_read`/`viking_search`.
+
+## Install
+
+### Recommended — marketplace plugin
 
 ```bash
-omp plugin marketplace add ./ --scope project   # из корня репо
+# from a clone
+omp plugin marketplace add ./ --scope project
 omp plugin install omp-openviking-memory@omp-openviking-memory-marketplace --scope project
-omp plugin list  # omp-openviking-memory@0.2.0
+omp plugin list   # omp-openviking-memory@0.2.0
 ```
 
-После публикации на GitHub:
+From GitHub:
 
 ```bash
-omp plugin marketplace add github:YOUR_ORG/omp-openviking-memory --scope project
+omp plugin marketplace add github:cortexc0de/omp-openviking-memory --scope project
 omp plugin install omp-openviking-memory --scope project
 ```
 
-Локальная разработка без публикации: `omp plugin install --force ./ --scope project` (требует `mklink /J` на Windows — достаточно Developer Mode).
+Dev links without publishing: `omp plugin install --force ./ --scope project` — on Windows a `mklink /J` is enough (Developer Mode).
 
 ### Credentials
 
-Приоритет:
-
-1. `OPENVIKING_*` env (`OPENVIKING_URL`, `OPENVIKING_API_KEY` / `OPENVIKING_BEARER_TOKEN`, `OPENVIKING_ACCOUNT`, `OPENVIKING_USER`, `OPENVIKING_PEER_ID`)
+1. `OPENVIKING_*` env — `OPENVIKING_URL`, `OPENVIKING_API_KEY` / `OPENVIKING_BEARER_TOKEN`, `OPENVIKING_ACCOUNT`, `OPENVIKING_USER`, `OPENVIKING_PEER_ID`
 2. `~/.openviking/ovcli.conf` (`url`, `api_key`, `account`, `user`)
 3. `~/.openviking/ov.conf` (`server.url` / `host`+`port`, `server.root_api_key`)
 4. Default `http://127.0.0.1:1933`
 
-Peer: `OPENVIKING_PEER_ID` или `cwd → workspace-peer` (изоляция по проекту), выключается `OPENVIKING_WORKSPACE_PEER=0`. Scope recall: `OPENVIKING_RECALL_PEER_SCOPE=actor|all`.
+Peer: derived from `OPENVIKING_PEER_ID` or `cwd` via `workspace-peer` (per-project isolation). Disable with `OPENVIKING_WORKSPACE_PEER=0`. Recall scope: `OPENVIKING_RECALL_PEER_SCOPE=actor|all`.
 
-Быстрая проверка: `curl http://127.0.0.1:1933/health` или `node scripts/setup.mjs` (визард для `ovcli.conf`).
+```bash
+curl http://127.0.0.1:1933/health
+node scripts/setup.mjs   # wizard for ovcli.conf
+```
 
-### Конфиг поведения (`config.json` / `extensions/config.json`)
+### Behavior config
+
+`config.json` / `extensions/config.json`:
 
 ```json
 {
@@ -52,50 +86,58 @@ Peer: `OPENVIKING_PEER_ID` или `cwd → workspace-peer` (изоляция п�
 }
 ```
 
-`takeover.enabled: false` по умолчанию — coexistence с `memory.backend` OMP (см. ниже); у Pi дефолт `true`.
+`takeover.enabled: false` by default for coexistence with `memory.backend` (Pi defaults to `true`).
 
-## Что умеет
+## Lifecycle
 
-| Событие / поверхность | Что делает |
+| Event | What happens |
 |---|---|
 | `session_start` | `health()` → `ensureSession(ov-…)` → `replayPending()` → profile + archive overview |
-| `before_agent_start` | `queueSearch(prompt)` — без I/O, 0-задержка UI |
-| `context` | `fetchAssembledContext mode="context"` (15s/45s), ledger-стабилизация для prompt-cache |
+| `before_agent_start` | `queueSearch(prompt)` — no I/O, zero UI latency |
+| `context` | `fetchAssembledContext` + ledger injection |
 | `turn_end` | `syncBranch` → OV, `takeover.onTurnSynced`, footer `OV ✓/✗ · ↩` |
-| `session_before_compact` | takeover **или** `commit()` + rehydration |
-| `session_shutdown` | `commit()` (бюджет 2s) |
+| `session_before_compact` | takeover **or** `commit()` + rehydration |
+| `session_shutdown` | `commit()` (2s budget) |
 
-Инструменты (11): `viking_search`, `viking_read`, `viking_browse`, `viking_remember`, `viking_forget`, `viking_add_resource`, `viking_archive_expand`, `viking_tree` (≥0.4.14), `viking_write`, `viking_edit`, `viking_health`. `tree`/`write`/`edit` — optional: если сервер их не поддерживает, возвращают подсказку вместо падения.
+## Tools (11) · Commands · Skill
 
-Дополнительно: `viking://` uri-guard на `read`/`bash`/`glob`/`grep` — редиректит на `viking_read`/`viking_search`; команды `/viking` и `/ov` (`commit`/`status`/`health`).
+**Tools** — `viking_search`, `viking_read`, `viking_browse`, `viking_remember`, `viking_forget`, `viking_add_resource`, `viking_archive_expand`, `viking_tree` (≥0.4.14), `viking_write`, `viking_edit`, `viking_health`. `tree`/`write`/`edit` are optional: on unsupported servers they return guidance instead of failing.
 
-Skill: `skills/openviking-memory/SKILL.md` (находит OMP skill loader) + `references/optional-tools.md`. Slash: `commands/ov.md`.
+**Guard** — `viking://` on `read`/`bash`/`glob`/`grep` → redirect to `viking_read`/`viking_search`.
 
-## Coexistence с `memory.backend` OMP
+**Commands** — `/viking` and `/ov`: `status`/`health` (default, shows `systemStatus`), `commit`/`flush` (forced sync + commit).
 
-| `memory.backend` | OMP | Рекомендация OV |
+**Skill** — `skill://openviking-memory` (`skills/openviking-memory/SKILL.md` + `references/optional-tools.md`) + slash file `commands/ov.md`.
+
+## Coexistence with OMP `memory.backend`
+
+| `memory.backend` | OMP behavior | OV recommendation |
 |---|---|---|
-| `off` (default) | нет встроенной памяти | `takeover.enabled: true` допустим, если хотите отдать compaction OV |
-| `local` | `MEMORY.md` guidance ~5000tok | `takeover.enabled: false` (default) — оба инжектят, без драки за compaction |
-| `hindsight` / `mnemopi` | удалённый backend, владеет `session_before_compact` | `takeover.enabled: false` — только `commit()`, без `{compaction}` |
+| `off` (default) | no built-in memory | `takeover.enabled: true` is fine if you want OV to own compaction |
+| `local` | `MEMORY.md` guidance (~5000 tok) | `takeover.enabled: false` (default) — both layers inject, no compaction fight |
+| `hindsight` / `mnemopi` | remote backend, owns `session_before_compact` | `takeover.enabled: false` — only `commit()`, no `{compaction}` |
 
-## Команды
+## MCP fallback
 
-- `/viking`, `/ov` — `status` (дефолт, показывает `systemStatus`), `commit`/`flush` — форсированный sync+commit, `health` — алиас status.
-- В TUI `/marketplace install` ставит плагин; `omp plugin list` / `omp plugin doctor` — проверка.
+`mcp.json` exposes the stdio proxy (`servers/mcp-proxy.mjs`, `MAX_CONCURRENT_REQUESTS=16`, `Mcp-Session-Id`, credential hot-reload). Without Extension lifecycle, auto-memory is off — manual tool calls only.
 
-## Optional MCP fallback
-
-`mcp.json` отдаёт stdio→streamable-HTTP прокси (`servers/mcp-proxy.mjs`, `MAX_CONCURRENT_REQUESTS=16`, `Mcp-Session-Id`, hot-reload по `stat`). Без ExtensionAPI автопамять не работает — MCP alone = ручные вызовы.
-
-## Лицензия
-
-`AGPL-3.0` — вендор `shared/`/`lib/` скопированы из `examples/memory-plugin-shared/lib`.
-
-## Разработка
+## Development
 
 ```bash
-npm test            # node --test — 20+ кейсов
+npm test                          # node --test — 23 cases
 node --check extensions/openviking.ts
 node --check src/tools.ts
+omp plugin doctor                 # 6 ok
 ```
+
+Vendored `shared/` + `lib/` are copied from `examples/memory-plugin-shared/lib` via `GENERATED FROM` headers.
+
+## License
+
+`AGPL-3.0` — same as OpenViking.
+
+---
+
+<p align="center">
+  <sub>Built on <a href="https://github.com/volcengine/OpenViking">OpenViking</a> · for <a href="https://omp.sh">Oh My Pi</a></sub>
+</p>
