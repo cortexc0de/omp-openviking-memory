@@ -36,7 +36,8 @@
   },
   "scripts": {
     "test": "node --test tests/*.test.mjs",
-    "check": "node --check extensions/openviking.ts && node --check src/*.ts 2>&1 | head -n 50; echo check-done"
+    "check": "node --check extensions/openviking.ts && node --check src/*.ts 2>&1 | head -n 50; echo check-done",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "typescript": "^5.6.0"

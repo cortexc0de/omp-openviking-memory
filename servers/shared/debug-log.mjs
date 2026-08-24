@@ -1,4 +1,4 @@
-// GENERATED FROM examples/memory-plugin-shared/lib. DO NOT EDIT.
+// Patched: was GENERATED FROM examples/memory-plugin-shared/lib — perms fixed to 0o700/0o600
 /**
  * Shared structured debug logger for OpenViking memory plugin hook scripts.
  *
@@ -6,18 +6,20 @@
  * module stays path-agnostic so it can be vendored into each plugin snapshot.
  */
 
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, chmodSync } from "node:fs";
 import { dirname } from "node:path";
 
 function ensureDir(filePath) {
   try {
-    mkdirSync(dirname(filePath), { recursive: true });
+    mkdirSync(dirname(filePath), { recursive: true, mode: 0o700 });
+  try { chmodSync(dirname(filePath), 0o700); } catch {}
+
   } catch { /* best effort */ }
 }
 
 function writeLine(filePath, obj) {
   try {
-    appendFileSync(filePath, JSON.stringify(obj) + "\n");
+    appendFileSync(filePath, JSON.stringify(obj) + "\n", { mode: 0o600 });
   } catch { /* best effort */ }
 }
 

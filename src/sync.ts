@@ -1,5 +1,5 @@
 import type { OVClient } from "./client.js";
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, chmodSync } from "node:fs";
 import { dirname } from "node:path";
 import type { OVConfig } from "./config.js";
 import { deriveHarnessSessionId } from "../shared/session-model.mjs";
@@ -63,7 +63,7 @@ export class SyncManager {
     await replayPending(
       (path: string, init?: any) => this.client.fetchJSON(path, init, 10000),
       (stage: string, data: unknown) =>
-        debugLog(`${stage}: ${JSON.stringify(data)}`),
+        debugLog(`${stage}: ${JSON.stringify({ type: (data as any)?.type, sessionId: (data as any)?.sessionId ? String((data as any).sessionId).slice(0,12)+"..." : undefined, payloadBytes: JSON.stringify((data as any)?.payload ?? "").length })}`),
     );
   }
 
@@ -82,14 +82,17 @@ export class SyncManager {
     let added = 0;
     let tokens = 0;
     let allDelivered = true;
-    for (const payload of extracted.payloads) {
+    const MAX_PAYLOADS_PER_BRANCH = 100;
+    const payloads = extracted.payloads.slice(0, MAX_PAYLOADS_PER_BRANCH);
+    for (const payload of payloads) {
       const result = await this.addPayload(payload);
       if (!result.accepted) break;
       added++;
       tokens += estimatePayloadTokens(payload);
       allDelivered = allDelivered && result.delivered;
     }
-    if (added === extracted.payloads.length) {
+    // cap watermark advancement to prevent unbounded loop on huge branch
+    if (added === payloads.length && payloads.length === extracted.payloads.length) {
       this.syncedEntryCount = extracted.nextEntryCount;
     }
     if (added > 0 && !this.config.takeoverEnabled) {
@@ -142,6 +145,13 @@ export class SyncManager {
   }
 
   async shutdown(): Promise<void> {
-    return;
+    // Best-effort: replay any queued writes before exit; bounded by 2s budget from session_shutdown.
+    // Pending takes precedence over new payloads — if replay fails, enqueue will retry next session.
+    const deadline = Date.now() + 1800;
+    try {
+      const p: any = this.replayPending();
+      const timer: any = new Promise((_, rej) => setTimeout(() => rej(new Error("shutdown timeout")), Math.max(0, deadline - Date.now())));
+      await Promise.race([p, timer]);
+    } catch {}
   }
 }

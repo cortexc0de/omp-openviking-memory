@@ -8,7 +8,7 @@
  *  - User-Agent omp/… and ledger dir omp-recall-ledger
  */
 
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, chmodSync } from "node:fs";
 import { dirname } from "node:path";
 import { loadConfigFromModuleUrl, type OVConfig } from "../src/config.js";
 import { OVClient } from "../src/client.js";
@@ -20,7 +20,7 @@ import { guardVikingUriToolCall } from "../lib/uri-guard-adapter.mjs";
 import { registerTools } from "../src/tools.js";
 import { createTakeoverManager } from "../src/takeover.js";
 
-type ExtensionAPI = any;
+type ExtensionAPI = import("@oh-my-pi/pi-coding-agent").ExtensionAPI; // typed if available, falls back to any via peerDep
 
 export default async function (pi: ExtensionAPI) {
   const config = loadConfigFromModuleUrl(import.meta.url);
@@ -38,8 +38,10 @@ export default async function (pi: ExtensionAPI) {
     const file = process.env.OV_DEBUG_LOG;
     if (!file) return;
     try {
-      mkdirSync(dirname(file), { recursive: true });
-      appendFileSync(file, `${new Date().toISOString()} ${message}\n`);
+      mkdirSync(dirname(file), { recursive: true, mode: 0o700 });
+      try { chmodSync(dirname(file), 0o700); } catch {}
+
+      appendFileSync(file, `${new Date().toISOString()} ${message}\n`, { mode: 0o600 } as any);
     } catch {
       // best effort
     }

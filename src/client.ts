@@ -119,6 +119,17 @@ export class OVClient {
 
   /** Core fetch wrapper. Returns { ok, result } after parsing OV's { status, result } envelope. */
   async fetchJSON<T>(path: string, init?: RequestInit, timeoutMs = 10000): Promise<OVResponse<T>> {
+    // S02: require HTTPS for non-loopback baseUrl when an API key is set (loopback http is ok for local dev)
+    if (this.apiKey) {
+      try {
+        const u = new URL(this.baseUrl);
+        const host = u.hostname.toLowerCase();
+        const isLoopback = host === "127.0.0.1" || host === "::1" || host === "localhost";
+        if (u.protocol !== "https:" && !isLoopback) {
+          return { ok: false, result: null, status: 0, error: { message: `Refusing to send bearer token over plain http to non-loopback ${this.baseUrl} — use https` } };
+        }
+      } catch { /* baseUrl already validated elsewhere */ }
+    }
     try {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -126,6 +137,7 @@ export class OVClient {
         ...init,
         headers: { ...this.headers(), ...(init?.headers as Record<string, string> || {}) },
         signal: controller.signal,
+        redirect: "manual" as RequestRedirect,
       });
       clearTimeout(timer);
       const body = await resp.json().catch(() => ({}));

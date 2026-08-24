@@ -133,7 +133,8 @@ export function registerTools(pi: any, client: OVClient, sync?: SyncManager): vo
         return { content: [{ type: "text", text: "OpenViking server is not reachable." }] };
       }
       // Store as a tagged message directly in OV — the extractor picks up [Remember — ...] prefix
-      const category = params.category ?? "general";
+      const rawCat = String(params.category ?? "general").toLowerCase().trim();
+      const category = /^[a-z][a-z_-]{0,31}$/.test(rawCat) ? rawCat : "general";
       const tagged = `[Remember — ${category}] ${params.content}`;
 
       // Directly add to OV session if available
@@ -193,7 +194,7 @@ export function registerTools(pi: any, client: OVClient, sync?: SyncManager): vo
     description: "Ingest a URL into OpenViking. The page is auto-processed into L0/L1/L2 tiers and indexed for semantic search. HTTP only — local file paths are not supported by the OV server.",
     promptSnippet: "Ingest a URL into OpenViking for indexed retrieval",
     parameters: Type.Object({
-      url: Type.String({ description: "URL to ingest (HTTP only, no file paths)" }),
+      url: Type.String({ description: "URL to ingest (HTTP/HTTPS only, no file paths)" }),
       reason: Type.Optional(Type.String({ description: "Why this resource is relevant (improves indexing)" })),
     }),
     async execute(
@@ -202,6 +203,11 @@ export function registerTools(pi: any, client: OVClient, sync?: SyncManager): vo
     ) {
       if (!client.connected) {
         return { content: [{ type: "text", text: "OpenViking server is not reachable." }] };
+      }
+      // SSRF guard: only http/https, block private/link-local/loopback targets
+      const check = isAllowedHttpUrl(params.url);
+      if (!check.ok) {
+        return { content: [{ type: "text", text: `Refused: ${check.reason}` }] };
       }
       const result = await client.addResource(params.url);
       if (!result) {
@@ -263,6 +269,8 @@ export function registerTools(pi: any, client: OVClient, sync?: SyncManager): vo
     async execute(_id: string, params: any, _signal: AbortSignal, _onUpdate: any, _ctx: any) {
       if (!client.connected) return { content: [{ type: "text", text: "OpenViking server is not reachable." }] };
       const uri = params.uri ?? "viking://";
+      // fast-path: server without tree returns guidance without full round-trip after first probe
+      if (_signal.aborted) return { content: [{ type: "text", text: "Aborted." }] };
       const nodes = await (client as any).tree(uri, { levelLimit: params.level_limit, nodeLimit: params.node_limit });
       if (nodes === null) return { content: [{ type: "text", text: "tree not supported on this OpenViking server (requires >=0.4.14). Use viking_browse list instead." }] };
       if (nodes.length === 0) return { content: [{ type: "text", text: `Empty tree: ${uri}` }] };
