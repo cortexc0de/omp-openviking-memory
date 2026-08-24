@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "omp-openviking-memory",
+  "version": "0.2.0",
+  "description": "Long-term semantic memory for Oh My Pi via OpenViking \u2014 auto-recall/capture, 11 viking:// tools (incl. tree/write/edit), slash /ov.",
+  "author": {
+    "name": "Volcano Engine",
+    "url": "https://github.com/volcengine"
+  },
+  "homepage": "https://github.com/volcengine/OpenViking",
+  "repository": "https://github.com/volcengine/OpenViking",
+  "license": "AGPL-3.0",
+  "keywords": [
+    "memory",
+    "long-term-memory",
+    "context-engine",
+    "semantic-search",
+    "mcp",
+    "openviking",
+    "omp"
+  ]
+}

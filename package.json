@@ -1,0 +1,47 @@
+{
+  "name": "omp-openviking-memory",
+  "version": "0.2.0",
+  "description": "Long-term semantic memory for Oh My Pi via OpenViking \u2014 auto-recall/capture, 11 viking:// tools, tree/write/edit, slash commands.",
+  "type": "module",
+  "license": "AGPL-3.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "openviking",
+    "memory",
+    "omp",
+    "pi",
+    "mcp",
+    "context-database"
+  ],
+  "homepage": "https://github.com/volcengine/OpenViking",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/volcengine/OpenViking"
+  },
+  "author": {
+    "name": "Volcano Engine",
+    "url": "https://github.com/volcengine"
+  },
+  "omp": {
+    "extensions": [
+      "./extensions/openviking.ts"
+    ]
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/openviking.ts"
+    ]
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "check": "node --check extensions/openviking.ts && node --check src/*.ts 2>&1 | head -n 50; echo check-done"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "peerDependencies": {
+    "@oh-my-pi/pi-coding-agent": ">=18.0.0"
+  }
+}

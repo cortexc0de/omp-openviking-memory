@@ -1,0 +1,7 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+This plugin vendors files from https://github.com/volcengine/OpenViking
+(examples/memory-plugin-shared/lib and examples/pi-coding-agent-extension/lib)
+which are licensed under AGPL-3.0. This distribution is therefore licensed
+under AGPL-3.0. See https://www.gnu.org/licenses/agpl-3.0.html for the full text.
