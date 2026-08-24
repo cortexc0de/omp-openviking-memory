@@ -1,11 +1,13 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { buildUserAgent, resolveOpenVikingCredentials } from "../shared/credentials.mjs";
+import { buildUserAgent, readManifestVersion, resolveOpenVikingCredentials } from "../shared/credentials.mjs";
 import { resolveEffectivePeerId } from "../shared/workspace-peer.mjs";
 
-/** Hand-maintained: this extension ships no manifest to read a version from. */
-export const EXTENSION_VERSION = "0.2.0";
+export const EXTENSION_VERSION = (() => {
+  try { return readManifestVersion(new URL("../../plugin.json", import.meta.url)) || "0.0.0"; }
+  catch { return "0.0.0"; }
+})();
 
 export interface OVConfig {
   enabled: boolean;
