@@ -422,8 +422,6 @@ export class OVClient {
     const space = await this.resolveScopeSpace(scope);
     return `viking://${scope}/${space}/${parts.join("/")}`;
   }
-}
-
   // ========== Optional: tree / write / edit / health detail ==========
 
   /** GET /api/v1/fs/tree?uri=...&level_limit=&node_limit= — recursive tree; null if unsupported */
@@ -460,14 +458,13 @@ export class OVClient {
   private _caps: { tree: boolean | null; write: boolean | null; edit: boolean | null } = { tree: null, write: null, edit: null };
   async hasCapability(cap: "tree" | "write" | "edit"): Promise<boolean> {
     if (this._caps[cap] !== null) return this._caps[cap] as boolean;
-    // probe via OPTIONS or cheap call; fall back to optimistic true — tool will handle 4xx gracefully
     const path = cap === "tree" ? "/api/v1/fs/tree?uri=viking://" : cap === "write" ? "/api/v1/fs/write" : "/api/v1/fs/edit";
     const res = await this.fetchJSON<any>(path, cap === "tree" ? undefined : { method: "OPTIONS" }, 3000);
-    // 405 Method Not Allowed still means endpoint exists; 404 means absent
     const exists = res.ok || res.status === 405 || res.status === 400;
     this._caps[cap] = exists;
     return exists;
   }
+}
 
 function uriBasename(uri: string): string {
   const cleaned = uri.replace(/\/+$/, "");
